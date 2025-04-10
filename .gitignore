@@ -1,6 +1,3 @@
-# Ignore files
-go-crypto
-
 # Ignore compiled files
 *.exe
 *.exe~

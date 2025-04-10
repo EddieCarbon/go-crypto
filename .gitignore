@@ -1,19 +1,18 @@
-# Ignoruj konkretne pliki projektu
-blockchain.go
+# Ignore files
 go-crypto
 
-# Ignoruj skompilowane pliki Go
+# Ignore compiled files
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
 
-# Ignoruj pliki binarne bez rozszerzenia (typowe dla Go)
+# Ignore binary files without extension (typical for Go)
 */go-crypto
 go-crypto
 
-# Ignoruj katalogi cache Go
+# Ignore Go cache directories
 *.test
 *.out
 /vendor/
@@ -23,5 +22,5 @@ go-crypto
 *.sum
 /go.work
 
-# Ignoruj bazę danych blockchain
+# Ignore blockchain database
 *.db

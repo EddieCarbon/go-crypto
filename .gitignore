@@ -1,0 +1,27 @@
+# Ignoruj konkretne pliki projektu
+blockchain.go
+go-crypto
+
+# Ignoruj skompilowane pliki Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Ignoruj pliki binarne bez rozszerzenia (typowe dla Go)
+*/go-crypto
+go-crypto
+
+# Ignoruj katalogi cache Go
+*.test
+*.out
+/vendor/
+/Godeps/
+.idea/
+.vscode/
+*.sum
+/go.work
+
+# Ignoruj bazę danych blockchain
+*.db

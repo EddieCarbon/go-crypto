@@ -25,38 +25,39 @@ type BlockchainIterator struct {
 	db          *bolt.DB
 }
 
-// MineBlock mines new block with the provided transactions
-func (bc *Blockchain) MineBlock(transaction []*Transaction) {
+// MineBlock mines a new block with the provided transactions
+func (bc *Blockchain) MineBlock(transactions []*Transaction) {
 	var lastHash []byte
 
-	if err := bc.db.View(func(tx *bolt.Tx) error {
+	err := bc.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(blocksBucket))
 		lastHash = b.Get([]byte("l"))
 
 		return nil
-	}); err != nil {
+	})
+
+	if err != nil {
 		log.Panic(err)
 	}
 
-	newBlock := NewBlock(transaction, lastHash)
+	newBlock := NewBlock(transactions, lastHash)
 
-	if err := bc.db.Update(func(tx *bolt.Tx) error {
+	err = bc.db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(blocksBucket))
-
-		if err := b.Put(newBlock.Hash, newBlock.Serialize()); err != nil {
-			return err
+		err := b.Put(newBlock.Hash, newBlock.Serialize())
+		if err != nil {
+			log.Panic(err)
 		}
 
-		if err := b.Put([]byte("l"), newBlock.Hash); err != nil {
-			return err
+		err = b.Put([]byte("l"), newBlock.Hash)
+		if err != nil {
+			log.Panic(err)
 		}
 
 		bc.tip = newBlock.Hash
 
 		return nil
-	}); err != nil {
-		log.Panic(err)
-	}
+	})
 }
 
 // FindUnspentTransactions returns a list of transactions containing unspent outputs
@@ -121,7 +122,32 @@ func (bc *Blockchain) FindUTXO(address string) []TXOutput {
 	return UTXOs
 }
 
-// Iterator returns a BlockchainIterator
+// FindSpendableOutputs finds and returns unspent outputs to reference in inputs
+func (bc *Blockchain) FindSpendableOutputs(address string, amount int) (int, map[string][]int) {
+	unspentOutputs := make(map[string][]int)
+	unspentTXs := bc.FindUnspentTransactions(address)
+	accumulated := 0
+
+Work:
+	for _, tx := range unspentTXs {
+		txID := hex.EncodeToString(tx.ID)
+
+		for outIdx, out := range tx.Vout {
+			if out.CanBeUnlockedWith(address) && accumulated < amount {
+				accumulated += out.Value
+				unspentOutputs[txID] = append(unspentOutputs[txID], outIdx)
+
+				if accumulated >= amount {
+					break Work
+				}
+			}
+		}
+	}
+
+	return accumulated, unspentOutputs
+}
+
+// Iterator returns a BlockchainIterat
 func (bc *Blockchain) Iterator() *BlockchainIterator {
 	bci := &BlockchainIterator{bc.tip, bc.db}
 
@@ -160,7 +186,7 @@ func dbExists() bool {
 // NewBlockchain creates a new Blockchain with genesis Block
 func NewBlockchain(address string) *Blockchain {
 	if dbExists() == false {
-		fmt.Println("No existing blockchain found. Create one first")
+		fmt.Println("No existing blockchain found. Create one first.")
 		os.Exit(1)
 	}
 
@@ -172,7 +198,7 @@ func NewBlockchain(address string) *Blockchain {
 
 	err = db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(blocksBucket))
-		tip = b.Get([]byte("1"))
+		tip = b.Get([]byte("l"))
 
 		return nil
 	})

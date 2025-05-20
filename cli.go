@@ -31,6 +31,7 @@ func (cli *CLI) getBalance(address string) {
 	fmt.Printf("Balance of '%s': %d\n", address, balance)
 }
 
+
 func (cli *CLI) printUsage() {
 	fmt.Println("Usage:")
 	fmt.Println("  getbalance -address ADDRESS - Get balance of ADDRESS")
@@ -76,7 +77,6 @@ func (cli *CLI) send(from, to string, amount int) {
 	bc.MineBlock([]*Transaction{tx})
 	fmt.Println("Success!")
 }
-
 // Run parses command line arguments and processes commands
 func (cli *CLI) Run() {
 	cli.validateArgs()
